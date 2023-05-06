@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+include /usr/share/dpkg/architecture.mk
+
+%:
+	dh $@
+
+override_dh_install:
+	dh_install -prtw88-dkms --exclude=sign-file src/* usr/src/rtw88-$(DEB_VERSION)/
+
+override_dh_dkms:
+	dh_dkms -V $(DEB_VERSION)
+
+override_dh_builddeb:
+	dh_builddeb -- -Zxz

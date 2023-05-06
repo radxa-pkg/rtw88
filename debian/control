@@ -1,0 +1,18 @@
+Source: rtw88
+Maintainer: "Radxa Computer Co., Ltd" <dev@radxa.com>
+Section: misc
+Priority: optional
+Standards-Version: 4.6.0
+Build-Depends: debhelper (>=12~),
+               devscripts,
+               dh-sequence-dkms,
+               lintian,
+
+Package: rtw88-dkms
+Architecture: all
+Section: misc
+Priority: optional
+Depends: ${misc:Depends},
+Description: dkms sources for Realtek rtw88 Wi-Fi driver
+ This package provides the dkms source code for Realtek
+ rtw88 Wi-Fi driver.
