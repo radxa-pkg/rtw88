@@ -1,3 +1,10 @@
+rtw88 (5.12.0.5+git20231016.d193f2a-1) stable; urgency=medium
+
+  [ ZHANG Yuntian ]
+  * Update rtw88
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 16 Oct 2023 11:32:17 +0800
+
 rtw88 (5.12.0.5+git20230506.504a3e9-1) stable; urgency=medium
 
   * Imported from radxa-pkg/rtw88#504a3e9afe6a0502e89696c02b2b3668287caeae
