@@ -1,3 +1,3 @@
 [submodule "src"]
 	path = src
-	url = https://github.com/radxa-pkg/rtw88.git
+	url = https://github.com/lwfinger/rtw88.git
