@@ -222,30 +222,60 @@ static void rtw8723ds_efuse_parsing(struct rtw_efuse *efuse,
 	ether_addr_copy(efuse->addr, map->s.mac_addr);
 }
 
+#define EEPROM_DEFAULT_RFE_OPTION		0x00	// error message: rfe 4 isn't supported
+#define	EEPROM_RF_BOARD_OPTION_8723D		0xC1
+#define EEPROM_Default_CrystalCap_8723D		0x20
+#define	EEPROM_2G_5G_PA_TYPE_8723D		0xBC
+#define EEPROM_DEFAULT_CHANNEL_PLAN		0x7F
+#define	EEPROM_RF_BT_SETTING_8723D		0xC3
+#define	EEPROM_Default_ThermalMeter_8723D	0x18
+#define	EEPROM_Voltage_ADDR_8723D		0x08
+#define IS_PG_TXPWR_BASE_INVALID(_base)		((_base) > 63)
+
+#define EEPROM_OR_DEFAULT(i, d)			(((i) == 0xFF) ? (d) : (i))
 static int rtw8723d_read_efuse(struct rtw_dev *rtwdev, u8 *log_map)
 {
 	struct rtw_efuse *efuse = &rtwdev->efuse;
 	struct rtw8723d_efuse *map;
-	int i;
+	int i, j, txpwr_valid_count = 4;
+	bool txpwr_valid;
+	u8 txpwr_0[12] = {0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x02};
+	u8 txpwr_1[12] = {0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x21, 0x21, 0x21, 0x21, 0x21, 0x02};
+	u8 txpwr_def[168] = {
+		0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x24, 0xEE, 0xEE, 0xEE, 0xEE,
+		0xEE, 0xEE, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A,
+		0x04, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+		0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x24, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0x2A, 0x2A, 0x2A, 0x2A,
+		0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x04, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
+		0xEE, 0xEE, 0xEE, 0xEE, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x24,
+		0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A,
+		0x2A, 0x2A, 0x2A, 0x2A, 0x04, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0x2D, 0x2D,
+		0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x24, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
+		0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x2A, 0x04, 0xEE,
+		0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE
+	};
+	u8 fake_mac[ETH_ALEN] = {0x4a, 0x6d, 0xa2, 0x4a, 0xe1, 0xb5};
 
 	map = (struct rtw8723d_efuse *)log_map;
 
-	efuse->rfe_option = 0;
-	efuse->rf_board_option = map->rf_board_option;
-	efuse->crystal_cap = map->xtal_k;
-	efuse->pa_type_2g = map->pa_type;
-	efuse->lna_type_2g = map->lna_type_2g[0];
-	efuse->channel_plan = map->channel_plan;
+	efuse->rfe_option = EEPROM_OR_DEFAULT(map->rfe_option, EEPROM_DEFAULT_RFE_OPTION);
+	efuse->rf_board_option = EEPROM_OR_DEFAULT(map->rf_board_option, EEPROM_RF_BOARD_OPTION_8723D);
+	efuse->crystal_cap = EEPROM_OR_DEFAULT(map->xtal_k, EEPROM_Default_CrystalCap_8723D);
+	efuse->pa_type_2g = EEPROM_OR_DEFAULT(map->pa_type, EEPROM_2G_5G_PA_TYPE_8723D);
+	efuse->lna_type_2g = EEPROM_OR_DEFAULT(map->lna_type_2g[0], 0);
+	efuse->channel_plan = EEPROM_OR_DEFAULT(map->channel_plan, EEPROM_DEFAULT_CHANNEL_PLAN);
 	efuse->country_code[0] = map->country_code[0];
 	efuse->country_code[1] = map->country_code[1];
-	efuse->bt_setting = map->rf_bt_setting;
-	efuse->regd = map->rf_board_option & 0x7;
-	efuse->thermal_meter[0] = map->thermal_meter;
-	efuse->thermal_meter_k = map->thermal_meter;
+	efuse->bt_setting = EEPROM_OR_DEFAULT(map->rf_bt_setting, EEPROM_RF_BT_SETTING_8723D);
+	efuse->regd = (efuse->rf_board_option & 0x7);
+	efuse->thermal_meter[0] = EEPROM_OR_DEFAULT(map->thermal_meter, EEPROM_Default_ThermalMeter_8723D);
+	efuse->thermal_meter_k = EEPROM_OR_DEFAULT(map->thermal_meter, EEPROM_Default_ThermalMeter_8723D);
 	efuse->afe = map->afe;
 
-	for (i = 0; i < 4; i++)
-		efuse->txpwr_idx_table[i] = map->txpwr_idx_table[i];
+	memset(&(efuse->txpwr_idx_table), 0xFF, sizeof(efuse->txpwr_idx_table));
+	//memcpy(&(efuse->txpwr_idx_table), txpwr_def, sizeof(txpwr_def));
+	memcpy(&(efuse->txpwr_idx_table[0]), txpwr_0, sizeof(txpwr_0));
+	memcpy(&(efuse->txpwr_idx_table[1]), txpwr_1, sizeof(txpwr_1));
 
 	switch (rtw_hci_type(rtwdev)) {
 	case RTW_HCI_TYPE_PCIE:
@@ -261,6 +291,7 @@ static int rtw8723d_read_efuse(struct rtw_dev *rtwdev, u8 *log_map)
 		/* unsupported now */
 		return -ENOTSUPP;
 	}
+	memcpy(&efuse->addr, fake_mac, sizeof(fake_mac));
 
 	return 0;
 }
