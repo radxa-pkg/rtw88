@@ -50,39 +50,41 @@ struct rtw8723du_efuse {
 };
 
 struct rtw8723ds_efuse {
-	u8 res4[0x4a];			/* 0xd0 */
+	u8 res4[0x4a];				/* 0xd0 */
 	u8 mac_addr[ETH_ALEN];		/* 0x11a */
 };
 
 struct rtw8723d_efuse {
-	__le16 rtl_id;
-	u8 rsvd[2];
-	u8 afe;
-	u8 rsvd1[11];
+	__le16 rtl_id;				/* 0x00 */
+	u8 rsvd[2];					/* 0x02 */
+	u8 afe;						/* 0x04 */
+	u8 rsvd1[3];				/* 0x05 */
+	u8 voltage;					/* 0x08 */
+	u8 rsvd2[7];				/* 0x09 */
 
 	/* power index for four RF paths */
-	struct rtw_txpwr_idx txpwr_idx_table[4];
+	struct rtw_txpwr_idx txpwr_idx_table[4];	/* 0x10 + 0x2a * 4 */
 
-	u8 channel_plan;		/* 0xb8 */
-	u8 xtal_k;
-	u8 thermal_meter;
-	u8 iqk_lck;
-	u8 pa_type;			/* 0xbc */
-	u8 lna_type_2g[2];		/* 0xbd */
-	u8 lna_type_5g[2];
-	u8 rf_board_option;
-	u8 rf_feature_option;
-	u8 rf_bt_setting;
-	u8 eeprom_version;
-	u8 eeprom_customer_id;
-	u8 tx_bb_swing_setting_2g;
-	u8 res_c7;
-	u8 tx_pwr_calibrate_rate;
+	u8 channel_plan;			/* 0xb8 */
+	u8 xtal_k;					/* 0xb9 */
+	u8 thermal_meter;			/* 0xba */
+	u8 iqk_lck;					/* 0xbb */
+	u8 pa_type;					/* 0xbc */
+	u8 lna_type_2g[2];			/* 0xbd */
+	u8 lna_type_5g[2];			/* 0xbf */
+	u8 rf_board_option;			/* 0xc1 */
+	u8 rf_feature_option;		/* 0xc2 */
+	u8 rf_bt_setting;			/* 0xc3 */
+	u8 eeprom_version;			/* 0xc4 */
+	u8 eeprom_customer_id;		/* 0xc5 */
+	u8 tx_bb_swing_setting_2g;	/* 0xc6 */
+	u8 res_c7;					/* 0xc7 */
+	u8 tx_pwr_calibrate_rate;	/* 0xc8 */
 	u8 rf_antenna_option;		/* 0xc9 */
-	u8 rfe_option;
-	u8 country_code[2];
-	u8 res[3];
-	union {
+	u8 rfe_option;				/* 0xca */
+	u8 country_code[2];			/* 0xcb */
+	u8 res[3];					/* 0xcd */
+	union {						/* 0xd0 */
 		struct rtw8723de_efuse e;
 		struct rtw8723du_efuse u;
 		struct rtw8723ds_efuse s;

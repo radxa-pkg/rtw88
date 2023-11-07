@@ -601,7 +601,7 @@ struct rtw_5g_txpwr_idx {
 struct rtw_txpwr_idx {
 	struct rtw_2g_txpwr_idx pwr_idx_2g;
 	struct rtw_5g_txpwr_idx pwr_idx_5g;
-};
+}; // sizeof 0x2a
 
 struct rtw_channel_params {
 	u8 center_chan;
