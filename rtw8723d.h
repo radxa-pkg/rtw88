@@ -50,8 +50,13 @@ struct rtw8723du_efuse {
 };
 
 struct rtw8723ds_efuse {
-	u8 res4[0x4a];				/* 0xd0 */
+	u8 res4[0x1f];				/* 0xd0 */
+	u8 ppg_thermal;				/* 0xef */
+	u8 res5[0x2a];				/* 0xf0 */
 	u8 mac_addr[ETH_ALEN];		/* 0x11a */
+	u8 res6[0xce];				/* 0x120 */
+	u8 ppg_bb_gain;				/* 0x1ee */
+	u8 res7[0x10];				/* 0x1ef */
 };
 
 struct rtw8723d_efuse {
