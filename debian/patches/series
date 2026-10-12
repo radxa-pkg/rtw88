@@ -1,1 +1,2 @@
 fix-dkms-build.patch
+fix-rtl8723ds-h2c-mailbox.patch

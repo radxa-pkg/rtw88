@@ -4,8 +4,8 @@ Index: rtw88/src/dkms.conf
 +++ rtw88/src/dkms.conf
 @@ -1,5 +1,5 @@
  PACKAGE_NAME="rtw88"
--PACKAGE_VERSION=0.6
+-PACKAGE_VERSION="0.6"
 +PACKAGE_VERSION="#MODULE_VERSION#"
- MAKE="make -C $kernel_source_dir M=$dkms_tree/$PACKAGE_NAME/$PACKAGE_VERSION/build"
- CLEAN="make clean"
- BUILT_MODULE_NAME[0]="rtw_pci"
+ MAKE="KVER=${kernelver} 'make' all"
+ CLEAN="KVER=${kernelver} 'make' clean"
+ AUTOINSTALL=yes

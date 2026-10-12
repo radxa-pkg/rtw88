@@ -1,0 +1,52 @@
+Description: Allow a sleepable H2C mailbox retry on RTL8723D SDIO
+ Keep the 3 ms fast poll and add a 100 ms sleepable retry while power and
+ firmware are running, following the vendor driver's mailbox-wait approach.
+Author: Xinming Chen <chenxinming@radxa.com>
+Forwarded: no
+
+diff --git a/src/fw.c b/src/fw.c
+index b90bb5c..12de18c 100644
+--- a/src/fw.c
++++ b/src/fw.c
+@@ -395,0 +396,31 @@ EXPORT_SYMBOL(rtw_fw_c2h_cmd_isr);
++static int rtw_fw_wait_h2c_mailbox(struct rtw_dev *rtwdev, u8 box,
++				   u8 *box_state)
++{
++	int ret;
++
++	lockdep_assert_held(&rtwdev->mutex);
++
++	ret = read_poll_timeout_atomic(rtw_read8, *box_state,
++				       !(*box_state & BIT(box)), 100, 3000,
++				       false, rtwdev, REG_HMETFR);
++	if (!ret || rtw_hci_type(rtwdev) != RTW_HCI_TYPE_SDIO ||
++	    rtwdev->chip->id != RTW_CHIP_TYPE_8723D ||
++	    !test_bit(RTW_FLAG_POWERON, rtwdev->flags) ||
++	    !test_bit(RTW_FLAG_FW_RUNNING, rtwdev->flags))
++		return ret;
++
++	/*
++	 * The 8723D SDIO vendor driver retries a busy mailbox with 1 ms
++	 * sleeps. Allow firmware to drain command bursts after LPS without
++	 * extending the atomic poll.
++	 */
++	ret = read_poll_timeout(rtw_read8, *box_state,
++			       !(*box_state & BIT(box)), 1000, 100000,
++			       false, rtwdev, REG_HMETFR);
++	if (!ret)
++		rtw_dbg(rtwdev, RTW_DBG_FW,
++			"H2C mailbox %u became ready after SDIO retry\n", box);
++
++	return ret;
++}
++
+@@ -431,3 +462 @@ static void rtw_fw_send_h2c_command_register(struct rtw_dev *rtwdev,
+-	ret = read_poll_timeout_atomic(rtw_read8, box_state,
+-				       !((box_state >> box) & 0x1), 100, 3000,
+-				       false, rtwdev, REG_HMETFR);
++	ret = rtw_fw_wait_h2c_mailbox(rtwdev, box, &box_state);
+@@ -487,3 +516 @@ static void rtw_fw_send_h2c_command(struct rtw_dev *rtwdev,
+-	ret = read_poll_timeout_atomic(rtw_read8, box_state,
+-				       !((box_state >> box) & 0x1), 100, 3000,
+-				       false, rtwdev, REG_HMETFR);
++	ret = rtw_fw_wait_h2c_mailbox(rtwdev, box, &box_state);
