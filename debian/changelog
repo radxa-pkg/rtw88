@@ -1,3 +1,13 @@
+rtw88 (1:0.6-2) stable; urgency=medium
+
+  [ ZHANG Yuntian ]
+  * Create pkg.conf.template
+
+  [ Xinming Chen ]
+  * fix: add RTL8723DS H2C mailbox retry
+
+ -- "Radxa Computer (Shenzhen) Co., Ltd." <dev@radxa.com>  Thu, 15 Oct 2026 06:21:07 +0000
+
 rtw88 (1:0.6-1) stable; urgency=medium
 
   [ chenxmqqqq ]
